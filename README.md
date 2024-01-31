@@ -1,7 +1,6 @@
 # Vevor BLE Bridge
 
 A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engineered protocol used by AirHeaterBle application.
-Inspired by https://github.com/spin877/Bruciatore_BLE
 
 ## Getting Started
 
@@ -18,8 +17,16 @@ Inspired by https://github.com/spin877/Bruciatore_BLE
   * activate it: `source env/bin/activate`
 * acquire external deps (todo: requirements file):
   * `pip install bluepy` 
-* play around
+* play around, this is only a stub so far so don't expect anything
 
 ## Authors
 
-Bartosz Derleta
+* [Bartosz Derleta](https://github.com/bderleta)
+
+## License
+
+This project is licensed under the GPLv3 license.
+
+## Acknowledgments
+
+* [spin877](https://github.com/spin877/Bruciatore_BLE)
