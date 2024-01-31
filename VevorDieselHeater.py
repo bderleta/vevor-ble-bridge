@@ -5,6 +5,8 @@ import time
 import random
 import math
 import struct
+import sys
+import dictdiffer
 
 def _u8tonumber(e):
     return (e + 256) if (e < 0) else e
@@ -42,15 +44,15 @@ class _VevorDieselHeaterNotification:
         "Startup failure"
     )
     _running_step_strings = (
-        "Heating",
-        "Run Self-test",
-        "Ignition Preparation",
-        "Stable Combustion",
-        "Shutdown Cooling"
+        "Heating", # Stand-by
+        "Run Self-test", # Self-test
+        "Ignition Preparation", # Ignition
+        "Stable Combustion", # Running
+        "Shutdown Cooling" # Cooldown
     )
     
     def __init__(self, je):
-        print("< " + je.hex(' ', 1))
+        #print("< " + je.hex(' ', 1))
         fb = _u8tonumber(je[0])
         sb = _u8tonumber(je[1])
         if (170 == fb) and (85 == sb):
@@ -106,8 +108,8 @@ class _VevorDieselHeaterNotification:
         else:
             raise RuntimeError('Unrecognized payload')
     
-    def dump(self):
-        print(vars(self))
+    def data(self):
+        return (vars(self))
         
 class _VevorDieselHeaterDelegate(DefaultDelegate):
     def __init__(self, parent):
@@ -120,6 +122,7 @@ class VevorDieselHeater:
     _service_uuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
     _characteristic_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
     _last_notification = None
+    _acked_notification_data = {}
     
     def __init__(self, mac_address: str, passkey: int):
         self.mac_address = mac_address
@@ -145,35 +148,64 @@ class VevorDieselHeater:
         o[5] = argument % 256
         o[6] = math.floor(argument / 256)
         o[7] = o[2] + o[3] + o[4] + o[5] + o[6]
-        print("> " + o.hex(' ', 1))
-        last_notification = None
+        #print("> " + o.hex(' ', 1))
+        self._last_notification = None
         response = self.characteristic.write(o, withResponse=True) # returns sth like "{'rsp': ['wr']}"
         if (self.peripheral.waitForNotifications(1) and self._last_notification):
-            ln = self._last_notification
-            self._last_notification = None
-            return ln
+            return self._last_notification
         return None
+    
+    def _send_command_diff(self, command: int, argument: int, n: int):
+        if self._last_notification is not None:
+            self._acked_notification_data = self._last_notification.data()
+        new_notification = self._send_command(command, argument, n)
+        if new_notification is None:
+            return None
+        diff_count = 0
+        for diff in dictdiffer.diff(self._acked_notification_data, new_notification.data()):
+            if diff[0] == 'add':
+                for x in diff[2]:
+                    diff_count += 1
+                    print("%s: %s" % (x[0], x[1]))
+            elif diff[0] == "change":
+                if (diff[1] == "altitude") and (abs(diff[2][0] - diff[2][1]) == 1):
+                    continue
+                diff_count += 1
+                print("%s: %s => %s" % (diff[1], diff[2][0], diff[2][1]))
+        if diff_count > 0:
+            print("---")
+        return new_notification
         
     def get_status(self):
         # todo: mode 136
-        return self._send_command(1, 0, 85)
+        return self._send_command_diff(1, 0, 85)
         
     def start(self):
-        return self._send_command(3, 1, 85)
+        return self._send_command_diff(3, 1, 85)
         
     def stop(self):
-        return self._send_command(3, 0, 85)
+        return self._send_command_diff(3, 0, 85)
         
         
 vdh = VevorDieselHeater("1e:00:10:0a:d6:15", 2697)
 
-result = vdh.stop()
+result = vdh.get_status()
 if (result):
-	result.dump()
-	time.sleep(5)
+    time.sleep(1)
+
+try:
+    if sys.argv[1] == "stop":
+        result = vdh.stop()
+        if (result):
+            time.sleep(1)
+    elif sys.argv[1] == "start":
+        result = vdh.start()
+        if (result):
+            time.sleep(1)
+except:
+    pass
 
 while True:
     result = vdh.get_status()
     if (result):
-        result.dump()
-        time.sleep(5)
+        time.sleep(1)
