@@ -16,8 +16,8 @@ A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engine
 * optional:
   * add venv: `python -m venv env`
   * activate it: `source env/bin/activate`
-* acquire external deps (todo: requirements file):
-  * `pip install bluepy` 
+* acquire external deps:
+  * `pip install -r requirements.txt` 
 * play around, this is only a stub so far so don't expect anything
 
 ## Authors
