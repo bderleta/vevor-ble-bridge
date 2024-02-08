@@ -1,6 +1,6 @@
 # Vevor BLE Bridge
 
-A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engineered protocol used by AirHeaterBle application.
+A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engineered protocol used by AirHeaterBle application. Tested on Raspberry Pi 5.
 
 ![obraz](https://github.com/bderleta/vevor-ble-bridge/assets/4968080/307599a9-bbd1-4864-b016-e079e434a8c6)
 
