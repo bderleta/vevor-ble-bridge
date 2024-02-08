@@ -8,17 +8,16 @@ A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engine
 
 * Python 3.10+
 * [bluepy](https://github.com/IanHarvey/bluepy)
-* [deepdiff](https://github.com/seperman/deepdiff)
+* [paho-mqtt](https://pypi.org/project/paho-mqtt/)
 
 ### Installing
 
 * `git clone` this repository and enter the `vevor-ble-bridge` directory
-* optional:
-  * add venv: `python -m venv env`
-  * activate it: `source env/bin/activate`
-* acquire external deps:
-  * `pip install -r requirements.txt` 
-* play around, this is only a stub so far so don't expect anything
+* build docker container: `docker build -t vevor-ble-bridge`
+* prepare your `.env` file (you can start from copying the sample file `.env.sample`)
+* run the container interactively to verify it's OK: `docker-compose up`
+* if it's working, kill it (Ctrl+C or so) and run detached `docker-compose up -d` and forget about it
+* configure your MQTT integration in Home Assistant, if you didn't do it yet, this bridge supports autodiscovery so your device should automatically appear
 
 ## Authors
 
