@@ -62,7 +62,7 @@ def get_device_conf():
         "manufacturer": device_manufacturer,
         "model": device_id,
         "via_device": via_device,
-        "sw": "Vevor-Ble-Bridge",
+        "sw": "Vevor-BLE-Bridge",
     }
     return conf
 
