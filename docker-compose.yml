@@ -3,6 +3,7 @@ services:
     vevor-ble-bridge:
         image: vevor-ble-bridge
         network_mode: host
+        restart: unless-stopped
         cap_add:
             - NET_ADMIN
             - NET_RAW
