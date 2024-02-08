@@ -199,9 +199,6 @@ def dispatch_result(result):
         else:
             client.publish(mqtt_prefix+"/start/av", "online")
             start_pub=True
-            client.publish(mqtt_prefix+"/level/av", "online")
-            client.publish(mqtt_prefix+"/level/state", result.set_level)
-            level_pub=True
     if not stop_pub:
         client.publish(mqtt_prefix+"/stop/av", "offline")
     if not start_pub:
