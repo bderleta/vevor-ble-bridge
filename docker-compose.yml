@@ -1,0 +1,18 @@
+version: '3.6'
+services:
+    vevor-ble-bridge:
+        image: vevor-ble-bridge
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+            - NET_RAW
+        environment:
+            BLE_MAC_ADDRESS: ${BLE_MAC_ADDRESS}
+            BLE_PASSKEY: ${BLE_PASSKEY}
+            DEVICE_NAME: ${DEVICE_NAME}
+            DEVICE_MANUFACTURER: ${DEVICE_MANUFACTURER}
+            DEVICE_MODEL: ${DEVICE_MODEL}
+            MQTT_HOST: ${MQTT_HOST}
+            MQTT_USERNAME: ${MQTT_USERNAME}
+            MQTT_PASSWORD: ${MQTT_PASSWORD}
+            MQTT_PREFIX: ${MQTT_PREFIX}

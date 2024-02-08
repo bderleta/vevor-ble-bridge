@@ -1,12 +1,14 @@
+# Vevor BLE Bridge
+# 2024 Bartosz Derleta <bartosz@derleta.com>
+
 import os
-from bluepy.btle import Peripheral, DefaultDelegate
+from bluepy.btle import Peripheral, DefaultDelegate, Scanner
 import threading
 import time
 import random
 import math
 import struct
 import sys
-import dictdiffer
 
 def _u8tonumber(e):
     return (e + 256) if (e < 0) else e
@@ -16,7 +18,7 @@ def _UnsignToSign(e):
         e = e | -65536
     return e
 
-class _VevorDieselHeaterNotification:
+class _DieselHeaterNotification:
     _error_strings = (
         "No fault",
         "Startup failure",
@@ -44,11 +46,11 @@ class _VevorDieselHeaterNotification:
         "Startup failure"
     )
     _running_step_strings = (
-        "Heating", # Stand-by
-        "Run Self-test", # Self-test
-        "Ignition Preparation", # Ignition
-        "Stable Combustion", # Running
-        "Shutdown Cooling" # Cooldown
+        "Standby", # "Heating", # Stand-by
+        "Self-test", # "Run Self-test", # Self-test
+        "Ignition", # "Ignition Preparation", # Ignition
+        "Running", # "Stable Combustion", # Running
+        "Cooldown", # "Shutdown Cooling" # Cooldown
     )
     
     def __init__(self, je):
@@ -111,18 +113,17 @@ class _VevorDieselHeaterNotification:
     def data(self):
         return (vars(self))
         
-class _VevorDieselHeaterDelegate(DefaultDelegate):
+class _DieselHeaterDelegate(DefaultDelegate):
     def __init__(self, parent):
         self.parent = parent
     
     def handleNotification(self, cHandle, data):
-        self.parent._last_notification = _VevorDieselHeaterNotification(data)
+        self.parent._last_notification = _DieselHeaterNotification(data)
 
-class VevorDieselHeater:
+class DieselHeater:
     _service_uuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
     _characteristic_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
     _last_notification = None
-    _acked_notification_data = {}
     
     def __init__(self, mac_address: str, passkey: int):
         self.mac_address = mac_address
@@ -134,7 +135,7 @@ class VevorDieselHeater:
         self.characteristic = self.service.getCharacteristics(self._characteristic_uuid)[0]
         if self.characteristic is None:
             raise RuntimeError('Requested characteristic is not supported by service');
-        self.peripheral.setDelegate(_VevorDieselHeaterDelegate(self))
+        self.peripheral.setDelegate(_DieselHeaterDelegate(self))
         
     def _send_command(self, command: int, argument: int, n: int):
         o = bytearray([0xaa, n % 256, 0, 0, 0, 0, 0, 0])
@@ -154,58 +155,18 @@ class VevorDieselHeater:
         if (self.peripheral.waitForNotifications(1) and self._last_notification):
             return self._last_notification
         return None
-    
-    def _send_command_diff(self, command: int, argument: int, n: int):
-        if self._last_notification is not None:
-            self._acked_notification_data = self._last_notification.data()
-        new_notification = self._send_command(command, argument, n)
-        if new_notification is None:
-            return None
-        diff_count = 0
-        for diff in dictdiffer.diff(self._acked_notification_data, new_notification.data()):
-            if diff[0] == 'add':
-                for x in diff[2]:
-                    diff_count += 1
-                    print("%s: %s" % (x[0], x[1]))
-            elif diff[0] == "change":
-                if (diff[1] == "altitude") and (abs(diff[2][0] - diff[2][1]) == 1):
-                    continue
-                diff_count += 1
-                print("%s: %s => %s" % (diff[1], diff[2][0], diff[2][1]))
-        if diff_count > 0:
-            print("---")
-        return new_notification
         
     def get_status(self):
         # todo: mode 136
-        return self._send_command_diff(1, 0, 85)
+        return self._send_command(1, 0, 85)
         
     def start(self):
-        return self._send_command_diff(3, 1, 85)
+        return self._send_command(3, 1, 85)
         
     def stop(self):
-        return self._send_command_diff(3, 0, 85)
+        return self._send_command(3, 0, 85)
         
-        
-vdh = VevorDieselHeater("1e:00:10:0a:d6:15", 2697)
-
-result = vdh.get_status()
-if (result):
-    time.sleep(1)
-
-try:
-    if sys.argv[1] == "stop":
-        result = vdh.stop()
-        if (result):
-            time.sleep(1)
-    elif sys.argv[1] == "start":
-        result = vdh.start()
-        if (result):
-            time.sleep(1)
-except:
-    pass
-
-while True:
-    result = vdh.get_status()
-    if (result):
-        time.sleep(1)
+    def set_level(self, level):
+        if (level < 1) or (level > 10):
+            raise RuntimeError('Invalid level');
+        return self._send_command(4, level, 85)
