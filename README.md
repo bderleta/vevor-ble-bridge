@@ -15,7 +15,7 @@ A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engine
 ### Installing
 
 * `git clone` this repository and enter the `vevor-ble-bridge` directory
-* build docker container: `docker build -t vevor-ble-bridge`
+* build docker container: `docker build .`
 * prepare your `.env` file (you can start from copying the sample file `.env.sample`)
 * run the container interactively to verify it's OK: `docker-compose up`
 * if it's working, kill it (Ctrl+C or so) and run detached `docker-compose up -d` and forget about it
