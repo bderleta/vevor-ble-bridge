@@ -1,5 +1,6 @@
 from bluepy.btle import Scanner, DefaultDelegate
 
+
 class ScanDelegate(DefaultDelegate):
     def __init__(self):
         DefaultDelegate.__init__(self)
@@ -10,6 +11,7 @@ class ScanDelegate(DefaultDelegate):
         elif isNewData:
             print("Received new data from", dev.addr)
 
+
 print("Creating scanner...")
 scanner = Scanner().withDelegate(ScanDelegate())
 print("Scanning...")
@@ -17,6 +19,6 @@ devices = scanner.scan(10.0)
 print("Finished.")
 
 for dev in devices:
-    print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
-    for (adtype, desc, value) in dev.getScanData():
-        print("  %s = %s" % (desc, value))
+    print(f"Device {dev.addr} ({dev.addrType}), RSSI={dev.rssi} dB")
+    for adtype, desc, value in dev.getScanData():
+        print(f"{desc} = {value}")
