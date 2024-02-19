@@ -19,6 +19,6 @@ devices = scanner.scan(10.0)
 print("Finished.")
 
 for dev in devices:
-    print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
+    print(f"Device {dev.addr} ({dev.addrType}), RSSI={dev.rssi} dB")
     for adtype, desc, value in dev.getScanData():
-        print("  %s = %s" % (desc, value))
+        print(f"{desc} = {value}")

@@ -61,11 +61,11 @@ def init_client():
     client = mqtt.Client(client_id=device_id, clean_session=True)
     if mqtt_username and len(mqtt_username) and mqtt_password and len(mqtt_password):
         logger.info(
-            "Connecting to MQTT broker %s@%s:%d", mqtt_username, mqtt_host, mqtt_port
+            f"Connecting to MQTT broker {mqtt_username}@{mqtt_host}:{mqtt_port}"
         )
         client.username_pw_set(mqtt_username, mqtt_password)
     else:
-        logger.info("Connecting to MQTT broker %s:%d", mqtt_host, mqtt_port)
+        logger.info(f"Connecting to MQTT broker {mqtt_host}:{mqtt_port}")
     client.on_connect = on_connect
     client.on_message = on_message
     client.connect(mqtt_host, port=mqtt_port)
@@ -90,12 +90,12 @@ def publish_ha_config():
         "icon": "mdi:radiator",
         "name": "Start",
         "unique_id": device_id + "-000",
-        "command_topic": mqtt_prefix + "/start/cmd",
-        "availability_topic": mqtt_prefix + "/start/av",
+        "command_topic": f"{mqtt_prefix}/start/cmd",
+        "availability_topic": f"{mqtt_prefix}/start/av",
         "enabled_by_default": False,
     }
     client.publish(
-        mqtt_discovery_prefix + "/button/" + device_id + "-000" + "/config",
+        f"{mqtt_discovery_prefix}/button/{device_id}-000/config",
         json.dumps(start_conf),
     )
 
@@ -104,12 +104,12 @@ def publish_ha_config():
         "icon": "mdi:radiator-off",
         "name": "Stop",
         "unique_id": device_id + "-001",
-        "command_topic": mqtt_prefix + "/stop/cmd",
-        "availability_topic": mqtt_prefix + "/stop/av",
+        "command_topic": f"{mqtt_prefix}/stop/cmd",
+        "availability_topic": f"{mqtt_prefix}/stop/av",
         "enabled_by_default": False,
     }
     client.publish(
-        mqtt_discovery_prefix + "/button/" + device_id + "-001" + "/config",
+        f"{mqtt_discovery_prefix}/button/{device_id}-001/config",
         json.dumps(stop_conf),
     )
 
@@ -117,11 +117,11 @@ def publish_ha_config():
         "device": get_device_conf(),
         "expire_after": 10,
         "name": "Status",
-        "unique_id": device_id + "-010",
-        "state_topic": mqtt_prefix + "/status/state",
+        "unique_id": f"{device_id}-010",
+        "state_topic": f"{mqtt_prefix}/status/state",
     }
     client.publish(
-        mqtt_discovery_prefix + "/sensor/" + device_id + "-010" + "/config",
+        f"{mqtt_discovery_prefix}/sensor/{device_id}-010/config",
         json.dumps(status_conf),
     )
 
@@ -132,11 +132,11 @@ def publish_ha_config():
         "device_class": "temperature",
         "unit_of_measurement": "°C",
         "icon": "mdi:home-thermometer",
-        "unique_id": device_id + "-011",
-        "state_topic": mqtt_prefix + "/room_temperature/state",
+        "unique_id": f"{device_id}-011",
+        "state_topic": f"{mqtt_prefix}/room_temperature/state",
     }
     client.publish(
-        mqtt_discovery_prefix + "/sensor/" + device_id + "-011" + "/config",
+        f"{mqtt_discovery_prefix}/sensor/{device_id}-011/config",
         json.dumps(room_temperature_conf),
     )
 
@@ -151,7 +151,7 @@ def publish_ha_config():
         "state_topic": mqtt_prefix + "/heater_temperature/state",
     }
     client.publish(
-        mqtt_discovery_prefix + "/sensor/" + device_id + "-012" + "/config",
+        f"{mqtt_discovery_prefix}/sensor/{device_id}-012/config",
         json.dumps(heater_temperature_conf),
     )
 
@@ -162,11 +162,11 @@ def publish_ha_config():
         "device_class": "voltage",
         "unit_of_measurement": "V",
         "icon": "mdi:car-battery",
-        "unique_id": device_id + "-013",
-        "state_topic": mqtt_prefix + "/voltage/state",
+        "unique_id": f"{device_id}-013",
+        "state_topic": f"{mqtt_prefix}/voltage/state",
     }
     client.publish(
-        mqtt_discovery_prefix + "/sensor/" + device_id + "-013" + "/config",
+        f"{mqtt_discovery_prefix}/sensor/{device_id}-013/config",
         json.dumps(voltage_conf),
     )
 
@@ -177,29 +177,29 @@ def publish_ha_config():
         "device_class": "distance",
         "unit_of_measurement": "m",
         "icon": "mdi:summit",
-        "unique_id": device_id + "-014",
-        "state_topic": mqtt_prefix + "/altitude/state",
+        "unique_id": f"{device_id}-014",
+        "state_topic": f"{mqtt_prefix}/altitude/state",
     }
     client.publish(
-        mqtt_discovery_prefix + "/sensor/" + device_id + "-014" + "/config",
+        f"{mqtt_discovery_prefix}/sensor/{device_id}-014/config",
         json.dumps(altitude_conf),
     )
 
     level_conf = {
         "device": get_device_conf(),
         "name": "Power level",
-        "availability_topic": mqtt_prefix + "/level/av",
-        "command_topic": mqtt_prefix + "/level/cmd",
-        "state_topic": mqtt_prefix + "/level/state",
+        "availability_topic": f"{mqtt_prefix}/level/av",
+        "command_topic": f"{mqtt_prefix}/level/cmd",
+        "state_topic": f"{mqtt_prefix}/level/state",
         "enabled_by_default": False,
         "icon": "mdi:speedometer",
-        "unique_id": device_id + "-020",
+        "unique_id": f"{device_id}-020",
         "min": 1.0,
         "max": 10.0,
         "step": 1.0,
     }
     client.publish(
-        mqtt_discovery_prefix + "/number/" + device_id + "-020" + "/config",
+        f"{mqtt_discovery_prefix}/number/{device_id}-020/config",
         json.dumps(level_conf),
     )
 
@@ -212,9 +212,9 @@ def on_connect(client, userdata, flags, rc):
     logger.info("Connected to MQTT broker")
     client.subscribe(
         [
-            (mqtt_prefix + "/start/cmd", 2),
-            (mqtt_prefix + "/stop/cmd", 2),
-            (mqtt_prefix + "/level/cmd", 2),
+            (f"{mqtt_prefix}/start/cmd", 2),
+            (f"{mqtt_prefix}/stop/cmd", 2),
+            (f"{mqtt_prefix}/level/cmd", 2),
         ]
     )
     publish_ha_config()
@@ -229,32 +229,32 @@ def dispatch_result(result):
         msg = result.running_step_msg
         if result.error:
             msg = msg + " (" + result.error_msg + ")"
-        client.publish(mqtt_prefix + "/status/state", msg)
-        client.publish(mqtt_prefix + "/room_temperature/state", result.cab_temperature)
+        client.publish(f"{mqtt_prefix}/status/state", msg)
+        client.publish(f"{mqtt_prefix}/room_temperature/state", result.cab_temperature)
         if result.running_step:
-            client.publish(mqtt_prefix + "/voltage/state", result.supply_voltage)
-            client.publish(mqtt_prefix + "/altitude/state", result.altitude)
+            client.publish(f"{mqtt_prefix}/voltage/state", result.supply_voltage)
+            client.publish(f"{mqtt_prefix}/altitude/state", result.altitude)
             client.publish(
-                mqtt_prefix + "/heater_temperature/state", result.case_temperature
+                f"{mqtt_prefix}/heater_temperature/state", result.case_temperature
             )
             if ((result.running_mode == 0) or (result.running_mode == 1)) and (
                 result.running_step < 4
             ):
-                client.publish(mqtt_prefix + "/level/av", "online")
-                client.publish(mqtt_prefix + "/level/state", result.set_level)
+                client.publish(f"{mqtt_prefix}/level/av", "online")
+                client.publish(f"{mqtt_prefix}/level/state", result.set_level)
                 level_pub = True
             if result.running_step == 3:
-                client.publish(mqtt_prefix + "/stop/av", "online")
+                client.publish(f"{mqtt_prefix}/stop/av", "online")
                 stop_pub = True
         else:
-            client.publish(mqtt_prefix + "/start/av", "online")
+            client.publish(f"{mqtt_prefix}/start/av", "online")
             start_pub = True
     if not stop_pub:
-        client.publish(mqtt_prefix + "/stop/av", "offline")
+        client.publish(f"{mqtt_prefix}/stop/av", "offline")
     if not start_pub:
-        client.publish(mqtt_prefix + "/start/av", "offline")
+        client.publish(f"{mqtt_prefix}/start/av", "offline")
     if not level_pub:
-        client.publish(mqtt_prefix + "/level/av", "offline")
+        client.publish(f"{mqtt_prefix}/level/av", "offline")
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -268,7 +268,7 @@ def on_message(client, userdata, msg):
     elif msg.topic == mqtt_prefix + "/level/cmd":
         logger.info("Received LEVEL=%d command", int(msg.payload))
         dispatch_result(vdh.set_level(int(msg.payload)))
-    logger.debug(msg.topic + " " + str(msg.payload))
+    logger.debug(f"{msg.topic} f{str(msg.payload)}")
 
 
 logger = init_logger()
