@@ -21,9 +21,13 @@ A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engine
 * if it's working, kill it (Ctrl+C or so) and run detached `docker-compose up -d` and forget about it
 * configure your MQTT integration in Home Assistant, if you didn't do it yet, this bridge supports autodiscovery so your device should automatically appear
 
-## Authors
+## Author
 
 * [Bartosz Derleta](https://github.com/bderleta)
+
+## ChatGPT operator / CR / QA
+
+* [Piotr Bigos](https://github.com/piobig2871)
 
 ## License
 
