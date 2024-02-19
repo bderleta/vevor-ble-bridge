@@ -89,7 +89,7 @@ def publish_ha_config():
         "device": get_device_conf(),
         "icon": "mdi:radiator",
         "name": "Start",
-        "unique_id": device_id + "-000",
+        "unique_id": f"{device_id}-000",
         "command_topic": f"{mqtt_prefix}/start/cmd",
         "availability_topic": f"{mqtt_prefix}/start/av",
         "enabled_by_default": False,
@@ -103,7 +103,7 @@ def publish_ha_config():
         "device": get_device_conf(),
         "icon": "mdi:radiator-off",
         "name": "Stop",
-        "unique_id": device_id + "-001",
+        "unique_id": f"{device_id}-001",
         "command_topic": f"{mqtt_prefix}/stop/cmd",
         "availability_topic": f"{mqtt_prefix}/stop/av",
         "enabled_by_default": False,
@@ -147,8 +147,8 @@ def publish_ha_config():
         "device_class": "temperature",
         "unit_of_measurement": "°C",
         "icon": "mdi:thermometer-lines",
-        "unique_id": device_id + "-012",
-        "state_topic": mqtt_prefix + "/heater_temperature/state",
+        "unique_id": f"{device_id}-012",
+        "state_topic": f"{mqtt_prefix}/heater_temperature/state",
     }
     client.publish(
         f"{mqtt_discovery_prefix}/sensor/{device_id}-012/config",
@@ -228,7 +228,7 @@ def dispatch_result(result):
         logger.debug(str(result.data()))
         msg = result.running_step_msg
         if result.error:
-            msg = msg + " (" + result.error_msg + ")"
+            msg = f"{msg} ({result.error_msg})"
         client.publish(f"{mqtt_prefix}/status/state", msg)
         client.publish(f"{mqtt_prefix}/room_temperature/state", result.cab_temperature)
         if result.running_step:
@@ -259,16 +259,16 @@ def dispatch_result(result):
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    if msg.topic == mqtt_prefix + "/start/cmd":
+    if msg.topic == f"{mqtt_prefix}/start/cmd":
         logger.info("Received START command")
         dispatch_result(vdh.start())
-    elif msg.topic == mqtt_prefix + "/stop/cmd":
+    elif msg.topic == f"{mqtt_prefix}/stop/cmd":
         logger.info("Received STOP command")
         dispatch_result(vdh.stop())
-    elif msg.topic == mqtt_prefix + "/level/cmd":
-        logger.info("Received LEVEL=%d command", int(msg.payload))
+    elif msg.topic == f"{mqtt_prefix}/level/cmd":
+        logger.info(f"Received LEVEL={int(msg.payload)} command")
         dispatch_result(vdh.set_level(int(msg.payload)))
-    logger.debug(f"{msg.topic} f{str(msg.payload)}")
+    logger.debug(f"{msg.topic} {str(msg.payload)}")
 
 
 logger = init_logger()
