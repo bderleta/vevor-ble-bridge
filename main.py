@@ -36,7 +36,7 @@ mqtt_discovery_prefix = (
     if os.environ.get("MQTT_DISCOVERY_PREFIX")
     else "homeassistant"
 )
-mqtt_prefix = os.environ["MQTT_PREFIX"] % device_id
+mqtt_prefix = f"{os.environ['MQTT_PREFIX']}{device_id}"
 
 client = None
 logger = None
