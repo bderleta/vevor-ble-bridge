@@ -28,11 +28,8 @@ A MQTT-BLE bridge to enable control of Vevor Diesel Heater, using reverse-engine
 ## ChatGPT operator / CR / QA
 
 * [Piotr Bigos](https://github.com/piobig2871)
+* [spin877](https://github.com/spin877/Bruciatore_BLE)
 
 ## License
 
 This project is licensed under the GPLv3 license.
-
-## Acknowledgments
-
-* [spin877](https://github.com/spin877/Bruciatore_BLE)
