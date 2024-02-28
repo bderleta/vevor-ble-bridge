@@ -287,7 +287,7 @@ def dispatch_result(result):
             if result.running_mode == 2:
                 client.publish(f"{mqtt_prefix}/temperature/av", "online")
                 temperature_pub = True
-            if result.running_step == 3:
+            if (result.running_step > 0) and (result.running_step < 4):
                 client.publish(f"{mqtt_prefix}/stop/av", "online")
                 stop_pub = True
         else:
@@ -297,7 +297,6 @@ def dispatch_result(result):
         client.publish(f"{mqtt_prefix}/stop/av", "offline")
     if not start_pub:
         client.publish(f"{mqtt_prefix}/start/av", "offline")
-        client.publish(f"{mqtt_prefix}/stop/av", "online")
     if not level_pub:
         client.publish(f"{mqtt_prefix}/level/av", "offline")
     if not temperature_pub:
