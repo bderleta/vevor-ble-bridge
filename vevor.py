@@ -176,6 +176,11 @@ class DieselHeater:
         return self._send_command(3, 0, 85)
 
     def set_level(self, level):
-        if (level < 1) or (level > 10):
+        if (level < 1) or (level > 36):
             raise RuntimeError("Invalid level")
         return self._send_command(4, level, 85)
+        
+    def set_mode(self, mode):
+        if (mode < 1) or (mode > 2):
+            raise RuntimeError("Invalid mode")
+        return self._send_command(2, mode, 85)    

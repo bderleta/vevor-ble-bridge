@@ -8,6 +8,7 @@ import json
 import time
 import vevor
 import os
+import sys
 
 # = Configuration
 # == BLE bridge
@@ -42,7 +43,7 @@ client = None
 logger = None
 vdh = None
 run = True
-
+modes = ["Power Level", "Temperature"]
 
 def init_logger():
     logger = logging.getLogger("vevor-ble-bridge")
@@ -185,9 +186,24 @@ def publish_ha_config():
         json.dumps(altitude_conf),
     )
 
+    mode_select_conf = {
+        "device": get_device_conf(),
+        "name": "Mode",
+        "availability_topic": f"{mqtt_prefix}/mode/av",
+        "command_topic": f"{mqtt_prefix}/mode/cmd",
+        "state_topic": f"{mqtt_prefix}/mode/state",
+        "enabled_by_default": False,
+        "unique_id": f"{device_id}-021",
+        "options": modes
+    }
+    client.publish(
+        f"{mqtt_discovery_prefix}/select/{device_id}-021/config",
+        json.dumps(mode_select_conf),
+    )
+
     level_conf = {
         "device": get_device_conf(),
-        "name": "Power level",
+        "name": "Power Level",
         "availability_topic": f"{mqtt_prefix}/level/av",
         "command_topic": f"{mqtt_prefix}/level/cmd",
         "state_topic": f"{mqtt_prefix}/level/state",
@@ -202,7 +218,24 @@ def publish_ha_config():
         f"{mqtt_discovery_prefix}/number/{device_id}-020/config",
         json.dumps(level_conf),
     )
-
+    
+    temperature_conf = {
+        "device": get_device_conf(),
+        "name": "Temperature",
+        "availability_topic": f"{mqtt_prefix}/temperature/av",
+        "command_topic": f"{mqtt_prefix}/temperature/cmd",
+        "state_topic": f"{mqtt_prefix}/temperature/state",
+        "enabled_by_default": False,
+        "icon": "mdi:thermometer",
+        "unique_id": f"{device_id}-022",
+        "min": 8.0,
+        "max": 36.0,
+        "step": 1.0,
+    }
+    client.publish(
+        f"{mqtt_discovery_prefix}/number/{device_id}-022/config",
+        json.dumps(temperature_conf),
+    )   
 
 def on_connect(client, userdata, flags, rc):
     global run
@@ -215,6 +248,8 @@ def on_connect(client, userdata, flags, rc):
             (f"{mqtt_prefix}/start/cmd", 2),
             (f"{mqtt_prefix}/stop/cmd", 2),
             (f"{mqtt_prefix}/level/cmd", 2),
+            (f"{mqtt_prefix}/temperature/cmd", 2),
+            (f"{mqtt_prefix}/mode/cmd", 2),
         ]
     )
     publish_ha_config()
@@ -224,6 +259,8 @@ def dispatch_result(result):
     stop_pub = False
     start_pub = False
     level_pub = False
+    temperature_pub = False
+    mode_pub = False
     if result:
         logger.debug(str(result.data()))
         msg = result.running_step_msg
@@ -231,18 +268,25 @@ def dispatch_result(result):
             msg = f"{msg} ({result.error_msg})"
         client.publish(f"{mqtt_prefix}/status/state", msg)
         client.publish(f"{mqtt_prefix}/room_temperature/state", result.cab_temperature)
+        if result.running_mode:
+            client.publish(f"{mqtt_prefix}/mode/av", "online")
+            client.publish(f"{mqtt_prefix}/mode/state", modes[result.running_mode - 1])
+            mode_pub = True
         if result.running_step:
             client.publish(f"{mqtt_prefix}/voltage/state", result.supply_voltage)
             client.publish(f"{mqtt_prefix}/altitude/state", result.altitude)
             client.publish(
                 f"{mqtt_prefix}/heater_temperature/state", result.case_temperature
             )
-            if ((result.running_mode == 0) or (result.running_mode == 1)) and (
-                result.running_step < 4
-            ):
+            client.publish(f"{mqtt_prefix}/level/state", result.set_level)
+            if result.set_temperature is not None:
+                client.publish(f"{mqtt_prefix}/temperature/state", result.set_temperature)
+            if ((result.running_mode == 0) or (result.running_mode == 1)) and (result.running_step < 4):
                 client.publish(f"{mqtt_prefix}/level/av", "online")
-                client.publish(f"{mqtt_prefix}/level/state", result.set_level)
                 level_pub = True
+            if result.running_mode == 2:
+                client.publish(f"{mqtt_prefix}/temperature/av", "online")
+                temperature_pub = True
             if result.running_step == 3:
                 client.publish(f"{mqtt_prefix}/stop/av", "online")
                 stop_pub = True
@@ -255,6 +299,10 @@ def dispatch_result(result):
         client.publish(f"{mqtt_prefix}/start/av", "offline")
     if not level_pub:
         client.publish(f"{mqtt_prefix}/level/av", "offline")
+    if not temperature_pub:
+        client.publish(f"{mqtt_prefix}/temperature/av", "offline")
+    if not mode_pub:
+        client.publish(f"{mqtt_prefix}/mode/av", "offline")
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -268,6 +316,12 @@ def on_message(client, userdata, msg):
     elif msg.topic == f"{mqtt_prefix}/level/cmd":
         logger.info(f"Received LEVEL={int(msg.payload)} command")
         dispatch_result(vdh.set_level(int(msg.payload)))
+    elif msg.topic == f"{mqtt_prefix}/temperature/cmd":
+        logger.info(f"Received TEMPERATURE={int(msg.payload)} command")
+        dispatch_result(vdh.set_level(int(msg.payload)))
+    elif msg.topic == f"{mqtt_prefix}/mode/cmd":
+        logger.info(f"Received MODE={msg.payload} command")
+        dispatch_result(vdh.set_mode(modes.index(msg.payload.decode('ascii')) + 1))    
     logger.debug(f"{msg.topic} {str(msg.payload)}")
 
 
