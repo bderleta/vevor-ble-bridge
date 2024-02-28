@@ -93,7 +93,7 @@ def publish_ha_config():
         "unique_id": f"{device_id}-000",
         "command_topic": f"{mqtt_prefix}/start/cmd",
         "availability_topic": f"{mqtt_prefix}/start/av",
-        "enabled_by_default": False,
+        "enabled_by_default": True,
     }
     client.publish(
         f"{mqtt_discovery_prefix}/button/{device_id}-000/config",
@@ -107,7 +107,7 @@ def publish_ha_config():
         "unique_id": f"{device_id}-001",
         "command_topic": f"{mqtt_prefix}/stop/cmd",
         "availability_topic": f"{mqtt_prefix}/stop/av",
-        "enabled_by_default": False,
+        "enabled_by_default": True,
     }
     client.publish(
         f"{mqtt_discovery_prefix}/button/{device_id}-001/config",
@@ -192,7 +192,7 @@ def publish_ha_config():
         "availability_topic": f"{mqtt_prefix}/mode/av",
         "command_topic": f"{mqtt_prefix}/mode/cmd",
         "state_topic": f"{mqtt_prefix}/mode/state",
-        "enabled_by_default": False,
+        "enabled_by_default": True,
         "unique_id": f"{device_id}-021",
         "options": modes
     }
@@ -297,6 +297,8 @@ def dispatch_result(result):
         client.publish(f"{mqtt_prefix}/stop/av", "offline")
     if not start_pub:
         client.publish(f"{mqtt_prefix}/start/av", "offline")
+        client.publish(f"{mqtt_prefix}/stop/av", "online")
+        stop_pub = True
     if not level_pub:
         client.publish(f"{mqtt_prefix}/level/av", "offline")
     if not temperature_pub:
