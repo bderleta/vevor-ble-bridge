@@ -298,7 +298,6 @@ def dispatch_result(result):
     if not start_pub:
         client.publish(f"{mqtt_prefix}/start/av", "offline")
         client.publish(f"{mqtt_prefix}/stop/av", "online")
-        stop_pub = True
     if not level_pub:
         client.publish(f"{mqtt_prefix}/level/av", "offline")
     if not temperature_pub:
